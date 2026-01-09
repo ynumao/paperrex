@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { BrochureType, CoverPosition } from './BrochureModel';
-import { Upload, Box, Layers, Sun, Play, Pause, Ruler, Image as ImageIcon } from 'lucide-react';
+import { Upload, Box, Layers, Sun, Play, Pause, Ruler, Image as ImageIcon, X } from 'lucide-react';
 
 export type PaperSize = 'a4' | 'a5' | 'b5' | 'square';
 
@@ -26,6 +26,7 @@ interface SidebarProps {
     onUploadOuterPanel: (index: number, file: File) => void;
     onUploadInnerPanel: (index: number, file: File) => void;
     onExportOBJ: () => void;
+    onClose?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -39,16 +40,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onUploadOuter, onUploadInner,
     onUploadOuterPanel, onUploadInnerPanel,
     onExportOBJ,
+    onClose,
 }) => {
     const panelsCount = type === 'bifold' ? 2 : 3;
 
     return (
-        <div className="w-80 h-full flex flex-col gap-8 p-6 bg-white/80 backdrop-blur-md border-r border-slate-200 overflow-y-auto">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    紙見本ジェネレーター
-                </h1>
-                <p className="text-sm text-slate-500">紙見本を3Dで確認します。</p>
+        <div className="w-full h-full flex flex-col gap-8 p-6 bg-white md:bg-white/80 backdrop-blur-md border-r border-slate-200 overflow-y-auto shadow-2xl md:shadow-none">
+            <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        紙見本ジェネレーター
+                    </h1>
+                    <p className="text-xs md:text-sm text-slate-500">紙見本を3Dで確認します。</p>
+                </div>
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-2 -mr-2 rounded-lg hover:bg-slate-100 transition-colors md:hidden"
+                    >
+                        <X className="w-5 h-5 text-slate-400" />
+                    </button>
+                )}
             </div>
 
             {/* 01. 折りとサイズ */}
@@ -158,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     ))}
                 </div>
 
-                <div className="flex flex-col gap-4 max-h-[400px] pr-1 overflow-y-auto">
+                <div className="flex flex-col gap-4 max-h-[300px] md:max-h-[400px] pr-1 overflow-y-auto">
                     {uploadMode === 'spread' ? (
                         <>
                             <Uploader label="表面 (Spread)" onUpload={onUploadOuter} />
@@ -184,7 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </section>
 
             {/* 04. Controls */}
-            <section className="flex flex-col gap-6 pt-4 border-t border-slate-100">
+            <section className="flex flex-col gap-6 pt-4 border-t border-slate-100 pb-8 md:pb-0">
                 <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center text-xs font-medium text-slate-500">
                         <span>折り具合</span>
@@ -214,24 +226,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     />
                 </div>
 
-                <button
-                    onClick={() => setAutoRotate(!autoRotate)}
-                    className={`flex items-center justify-center gap-2 w-full p-2 rounded-lg text-sm font-medium transition-all ${autoRotate
-                        ? 'bg-amber-100 text-amber-700 border border-amber-200'
-                        : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
-                        }`}
-                >
-                    {autoRotate ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    {autoRotate ? '回転中' : '回転を有効にする'}
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setAutoRotate(!autoRotate)}
+                        className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg text-sm font-medium transition-all ${autoRotate
+                            ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
+                            }`}
+                    >
+                        {autoRotate ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        {autoRotate ? '回転中' : '回転'}
+                    </button>
 
-                <button
-                    onClick={onExportOBJ}
-                    className="flex items-center justify-center gap-2 w-full p-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-all"
-                >
-                    <Box className="w-4 h-4" />
-                    OBJ形式でエクスポート
-                </button>
+                    <button
+                        onClick={onExportOBJ}
+                        className="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-all"
+                    >
+                        <Box className="w-4 h-4" />
+                        OBJ出力
+                    </button>
+                </div>
             </section>
         </div>
     );
@@ -241,10 +255,10 @@ const Uploader = ({ label, onUpload, mini }: { label: string, onUpload: (f: File
     return (
         <div className="flex flex-col gap-1.5">
             <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{label}</span>
-            <label className={`group relative flex items-center justify-center w-full ${mini ? 'h-12' : 'h-20'} border-2 border-dashed border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all overflow-hidden`}>
+            <label className={`group relative flex items-center justify-center w-full ${mini ? 'h-12' : 'h-16 md:h-20'} border-2 border-dashed border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all overflow-hidden`}>
                 <div className="flex flex-col items-center gap-0.5 group-hover:scale-105 transition-transform">
-                    <Upload className={`${mini ? 'w-3 h-3' : 'w-5 h-5'} text-slate-400 group-hover:text-blue-500`} />
-                    <span className={`${mini ? 'text-[10px]' : 'text-xs'} text-slate-500 group-hover:text-blue-600 font-medium`}>Upload</span>
+                    <Upload className={`${mini ? 'w-3 h-3' : 'w-4 h-4 md:w-5 h-5'} text-slate-400 group-hover:text-blue-500`} />
+                    <span className={`${mini ? 'text-[10px]' : 'text-[10px] md:text-xs'} text-slate-500 group-hover:text-blue-600 font-medium`}>Upload</span>
                 </div>
                 <input
                     type="file"
